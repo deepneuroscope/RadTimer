@@ -1,11 +1,10 @@
-name: Build Windows EXE  # shows up in the “Actions” tab
+name: Build Windows EXE
 
 on:
-  workflow_dispatch:      # allow manual runs
+  workflow_dispatch:
   push:
-    branches: [ main ]    # run automatically on every push to main
+    branches: [ main ]
 
-# the runner needs read‑only access to the public actions marketplace
 permissions:
   actions: read
   contents: read
@@ -13,27 +12,31 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
-      - name: 📥 Checkout source
-        uses: actions/checkout@v4      # latest stable
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: 🐍 Install Python
-        uses: actions/setup-python@v5  # latest stable
+      # show the tree so you can confirm paths
+      - run: dir -Recurse -Depth 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: 📦 Install deps
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller pandas
+          pip install pyinstaller pandas openpyxl   # openpyxl = Excel writer
 
-      - name: 🛠️ Freeze to EXE
+      # <<< change working-directory or filename to match your repo layout
+      - name: Build EXE
         run: pyinstaller --onefile EventPlanning-TK.py
+        working-directory: pythonProject2          # <-- adjust or delete
 
-      - name: 📤 Upload EXE artefact
-        uses: actions/upload-artifact@v4   # ← **the working tag**
+      - name: Upload artefact
+        uses: actions/upload-artifact@v4
         with:
           name: EventPlanning-TK-EXE
-          path: dist/EventPlanning-TK.exe  # produced by PyInstaller
-          retention-days: 7                # auto‑purge after a week
+          path: pythonProject2/dist/EventPlanning-TK.exe   # match work dir
+          retention-days: 7
